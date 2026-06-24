@@ -19,9 +19,3 @@ services:
       - ALLOWED_SENDERS=${ALLOWED_SENDERS}
       - DDNS_ENABLED=${DDNS_ENABLED:-true}
       - DDNS_INTERVAL=${DDNS_INTERVAL:-5m}
-    networks:
-      - paperless-network
-
-networks:
-  paperless-network:
-    external: true
