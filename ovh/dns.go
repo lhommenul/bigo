@@ -26,6 +26,13 @@ type dnsRecord struct {
 	TTL   int    `json:"ttl"`
 }
 
+type createRecordInput struct {
+	FieldType string `json:"fieldType"`
+	SubDomain string `json:"subDomain"`
+	Target    string `json:"target"`
+	TTL       int    `json:"ttl"`
+}
+
 func New(endpoint, appKey, appSecret, consumerKey, domain, subdomain string) (*Client, error) {
 	c, err := ovh.NewClient(
 		endpoint,
@@ -102,11 +109,11 @@ func (c *Client) ensureARecord(ctx context.Context, ip string) error {
 		slog.Debug("deleted old A record", "id", r.ID, "value", r.Value)
 	}
 
-	record := dnsRecord{
-		Type:  "A",
-		Sub:   c.subdomain,
-		Value: ip,
-		TTL:   60,
+	record := createRecordInput{
+		FieldType: "A",
+		SubDomain: c.subdomain,
+		Target:    ip,
+		TTL:       60,
 	}
 	if err := c.client.Post(fmt.Sprintf("/domain/zone/%s/record", c.domain), record, nil); err != nil {
 		return fmt.Errorf("creating A record: %w", err)
@@ -118,32 +125,29 @@ func (c *Client) ensureARecord(ctx context.Context, ip string) error {
 
 func (c *Client) ensureMXRecord(ctx context.Context) error {
 	mxTarget := c.subdomain + "." + c.domain + "."
-	priority := 10
 
-	existing, err := c.findRecords("MX", "")
+	existing, err := c.findRecords("MX", c.subdomain)
 	if err != nil {
 		return err
 	}
 
-	for _, r := range existing {
-		if strings.Contains(r.Value, c.subdomain+"."+c.domain) {
-			slog.Debug("MX record already exists", "value", r.Value)
-			return nil
-		}
+	if len(existing) > 0 {
+		slog.Debug("MX record already exists", "target", existing[0].Value)
+		return nil
 	}
 
-	record := dnsRecord{
-		Type:  "MX",
-		Sub:   "",
-		Value: fmt.Sprintf("%d %s", priority, mxTarget),
-		TTL:   60,
+	record := createRecordInput{
+		FieldType: "MX",
+		SubDomain: c.subdomain,
+		Target:    fmt.Sprintf("10 %s", mxTarget),
+		TTL:       60,
 	}
 	if err := c.client.Post(fmt.Sprintf("/domain/zone/%s/record", c.domain), record, nil); err != nil {
 		return fmt.Errorf("creating MX record: %w", err)
 	}
 
 	slog.Info("MX record created",
-		"domain", c.domain,
+		"subdomain", c.subdomain+"."+c.domain,
 		"target", mxTarget,
 	)
 	return nil
