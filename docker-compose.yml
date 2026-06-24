@@ -1,0 +1,27 @@
+services:
+  smtp-gateway:
+    build: .
+    container_name: paperless-smtp
+    restart: unless-stopped
+    ports:
+      - "25:25"
+    environment:
+      - SMTP_LISTEN_ADDR=:25
+      - SMTP_HOSTNAME=mail.${DOMAIN}
+      - DOMAIN=${DOMAIN}
+      - SUBDOMAIN=${SUBDOMAIN:-docs}
+      - PAPERLESS_URL=${PAPERLESS_URL:-http://paperless:8000}
+      - PAPERLESS_API_TOKEN=${PAPERLESS_API_TOKEN}
+      - OVH_ENDPOINT=${OVH_ENDPOINT:-ovh-eu}
+      - OVH_APP_KEY=${OVH_APP_KEY}
+      - OVH_APP_SECRET=${OVH_APP_SECRET}
+      - OVH_CONSUMER_KEY=${OVH_CONSUMER_KEY}
+      - ALLOWED_SENDERS=${ALLOWED_SENDERS}
+      - DDNS_ENABLED=${DDNS_ENABLED:-true}
+      - DDNS_INTERVAL=${DDNS_INTERVAL:-5m}
+    networks:
+      - paperless-network
+
+networks:
+  paperless-network:
+    external: true
