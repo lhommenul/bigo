@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
-	"path/filepath"
 	"strings"
 )
 
@@ -26,22 +25,9 @@ func New(baseURL, token string) *Client {
 	}
 }
 
-func (c *Client) Upload(ctx context.Context, filename string, data []byte, tag string) error {
-	ext := strings.ToLower(filepath.Ext(filename))
-
+func (c *Client) Upload(ctx context.Context, filename string, data []byte, _ string) error {
 	body := new(bytes.Buffer)
 	w := multipart.NewWriter(body)
-
-	if err := w.WriteField("title", strings.TrimSuffix(filename, ext)); err != nil {
-		return fmt.Errorf("writing title field: %w", err)
-	}
-
-	if tag != "" {
-		correspondent := strings.TrimSuffix(tag, ext)
-		if err := w.WriteField("correspondent", correspondent); err != nil {
-			return fmt.Errorf("writing correspondent field: %w", err)
-		}
-	}
 
 	fw, err := w.CreateFormFile("document", filename)
 	if err != nil {
