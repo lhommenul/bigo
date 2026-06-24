@@ -24,6 +24,25 @@ networks:
     external: true
 ```
 
+## Créer les clés API OVH
+
+1. Va sur [https://eu.api.ovh.com/createToken/](https://eu.api.ovh.com/createToken/)
+2. Remplis :
+   - **Script name** : `paperless-smtp-gateway`
+   - **Validity** : `Unlimited`
+3. Ajoute ces droits exacts :
+
+| Méthode | Path |
+|---|---|
+| `GET` | `/domain/zone/*` |
+| `POST` | `/domain/zone/*` |
+| `DELETE` | `/domain/zone/*` |
+
+4. Clique sur **Create keys**
+5. Copie les trois clés (Application Key, Application Secret, Consumer Key) dans le `.env`
+
+> Ça permet au gateway de créer/mettre à jour les enregistrements DNS (A + MX) et de supprimer l'ancien A si ton IP change.
+
 ## Variables d'environnement
 
 | Variable | Description |
